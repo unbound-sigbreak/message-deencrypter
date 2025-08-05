@@ -89,6 +89,7 @@ These can be used instead of CLI flags. CLI flags take precedence.
 | `--cypher-text-file <file>`    | Ciphertext file to decrypt                  |
 | `--plaintext <str>`, `-pt`     | Plaintext string to encrypt                 |
 | `--plaintext-file <file>`      | Plaintext file to encrypt                   |
+| `--aes`                        | Enable hybrid AES+RSA encryption            |
 | `--raw`                        | Output raw plaintext (no JSON)              |
 | `--help`, `-h`                 | Show help menu                              |
 
