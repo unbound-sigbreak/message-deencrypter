@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RSA Encrypt/Decrypt Tool</title>
+  <script defer src="main.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 2em auto; }
+    textarea { width: 100%; height: 100px; }
+    .control { margin-bottom: 1.5em; }
+    button { margin-right: 1em; }
+    label { display: block; font-weight: bold; margin-bottom: 0.5em; }
+  </style>
+</head>
+<body>
+  <h1>RSA Encrypt/Decrypt Tool</h1>
+
+  <div class="control">
+    <button id="genKeyBtn">Generate Keypair</button>
+    <button id="exportPrivBtn">Export Private Key</button>
+  </div>
+
+  <div class="control">
+    <label for="pubkey">Public Key</label>
+    <textarea id="pubkey" readonly></textarea>
+  </div>
+
+  <div class="control">
+    <label for="plaintext">Plaintext to Encrypt</label>
+    <textarea id="plaintext"></textarea>
+    <button id="encryptBtn">Encrypt</button>
+  </div>
+
+  <div class="control">
+    <label for="ciphertext">Ciphertext (base64) to Decrypt</label>
+    <textarea id="ciphertext"></textarea>
+    <button id="decryptBtn">Decrypt</button>
+  </div>
+
+  <div class="control">
+    <label for="decrypted">Decrypted Output</label>
+    <textarea id="decrypted" readonly></textarea>
+  </div>
+</body>
+</html>
