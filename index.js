@@ -12,6 +12,7 @@ let plaintext = null;
 let keyId = null;
 let outputPath = null;
 let outputRaw = false;
+let useAES = false;
 
 let ciphertextSource = null;
 let plaintextSource = null;
@@ -41,6 +42,7 @@ const printHelp = () => {
   console.log(`  * --cypher-text-file, -ctf [file]    - Ciphertext file`);
   console.log(`  * --plaintext, -pt     [string]      - Plaintext to encrypt`);
   console.log(`  * --plaintext-file, -ptf [file]      - Plaintext file`);
+  console.log(`  * --aes                              - Enable hybrid AES+RSA encryption. Required for encrypting long messages.`);
   console.log(`  * --raw                              - Output raw plaintext (no JSON)`);
   console.log(`  * --help, -h                         - Show this help`);
   console.log('');
@@ -134,6 +136,10 @@ const parseArgs = (argv) => {
         outputRaw = true;
         break;
 
+      case '--aes':
+        useAES = true;
+        break;
+
       case '--plaintext-file':
       case '-ptf':
         plaintext = fs.readFileSync(argv[i + 1], 'utf8');
@@ -147,24 +153,25 @@ const parseArgs = (argv) => {
 parseArgs(process.argv.slice(2));
 
 // ENV fallback
-if (process.env.KEYS) keyDir = process.env.KEYS;
-if (process.env.MODE) mode = process.env.MODE;
-if (process.env.KEY_ID) keyId = process.env.KEY_ID;
-if (process.env.OUTPUT) outputPath = process.env.OUTPUT;
-if (!ciphertext && process.env.CIPHER_TEXT) {
-  ciphertext = process.env.CIPHER_TEXT;
+if (process.env.DEEC_KEYS) keyDir = process.env.DEEC_KEYS;
+if (process.env.DEEC_MODE) mode = process.env.DEEC_MODE;
+if (process.env.DEEC_KEY_ID) keyId = process.env.DEEC_KEY_ID;
+if (process.env.DEEC_OUTPUT) outputPath = process.env.DEEC_OUTPUT;
+if (process.env.DEEC_AES === 'true') useAES = true;
+if (!ciphertext && process.env.DEEC_CIPHER_TEXT) {
+  ciphertext = process.env.DEEC_CIPHER_TEXT;
   ciphertextSource = 'direct';
 }
-if (!ciphertext && process.env.CIPHER_TEXT_FILE) {
-  ciphertext = fs.readFileSync(process.env.CIPHER_TEXT_FILE, 'utf8');
+if (!ciphertext && process.env.DEEC_CIPHER_TEXT_FILE) {
+  ciphertext = fs.readFileSync(process.env.DEEC_CIPHER_TEXT_FILE, 'utf8');
   ciphertextSource = 'file';
 }
-if (!plaintext && process.env.PLAINTEXT) {
-  plaintext = process.env.PLAINTEXT;
+if (!plaintext && process.env.DEEC_PLAINTEXT) {
+  plaintext = process.env.DEEC_PLAINTEXT;
   plaintextSource = 'direct';
 }
-if (!plaintext && process.env.PLAINTEXT_FILE) {
-  plaintext = fs.readFileSync(process.env.PLAINTEXT_FILE, 'utf8');
+if (!plaintext && process.env.DEEC_PLAINTEXT_FILE) {
+  plaintext = fs.readFileSync(process.env.DEEC_PLAINTEXT_FILE, 'utf8');
   plaintextSource = 'file';
 }
 
@@ -225,12 +232,11 @@ if (mode === 'encrypt') {
       : keys[0];
 
   try {
-    const encrypted = rsa.encrypt(plaintext, selectedKey);
+    const encrypted = rsa.encrypt(plaintext, selectedKey, useAES);
     const output = encrypted.toString('base64');
     if (outputPath) {
       fs.writeFileSync(outputPath, output);
     } else {
-      console.log(`[encrypted with key: ${selectedKey}]`);
       console.log(output);
     }
   } catch (err) {

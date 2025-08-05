@@ -28,6 +28,8 @@ Place these files in your key directory, e.g. `~/.keys/`.
 
 ### 2. Encrypt a message
 
+__Note:__ If you are encrypting longer messages (+190~ characters) you must use the `--aes` flag.
+
 Encrypt a message using the first or a specific public key:
 ```bash
 node index.js --encrypt --key-id KEY_NAME_HERE --plaintext "my secret" -o encrypted.txt
@@ -55,22 +57,24 @@ Decrypt to raw plaintext only:
 node index.js --cypher-text-file encrypted.txt --raw
 ```
 
+__Note:__ If you are encrypting longer messages (+190~ characters) you must use the `--aes` flag.
+
 ## Full Usage
 
 ### Environment Variables
 
 These can be used instead of CLI flags. CLI flags take precedence.
 
-| Variable             | Default         | Description                               |
-|----------------------|------------------|-------------------------------------------|
-| `KEYS`               | `~/.keys`        | Directory to load key pairs from          |
-| `MODE`               | `decrypt`        | Either `encrypt` or `decrypt`             |
-| `KEY_ID`             | *(optional)*     | Public key name to use when encrypting    |
-| `OUTPUT`             | *(optional)*     | File to write output                      |
-| `PLAINTEXT`          | *(optional)*     | Plaintext string to encrypt               |
-| `PLAINTEXT_FILE`     | *(optional)*     | File path containing plaintext            |
-| `CIPHER_TEXT`        | *(optional)*     | Ciphertext string to decrypt              |
-| `CIPHER_TEXT_FILE`   | *(optional)*     | File path containing ciphertext           |
+| Variable             | Default          | Description                                    |
+|----------------------|------------------|------------------------------------------------|
+| `DEEC_KEYS`               | `~/.keys`        | Directory to load key pairs from          |
+| `DEEC_MODE`               | `decrypt`        | Either `encrypt` or `decrypt`             |
+| `DEEC_KEY_ID`             | *(optional)*     | Public key name to use when encrypting    |
+| `DEEC_OUTPUT`             | *(optional)*     | File to write output                      |
+| `DEEC_PLAINTEXT`          | *(optional)*     | Plaintext string to encrypt               |
+| `DEEC_PLAINTEXT_FILE`     | *(optional)*     | File path containing plaintext            |
+| `DEEC_CIPHER_TEXT`        | *(optional)*     | Ciphertext string to decrypt              |
+| `DEEC_CIPHER_TEXT_FILE`   | *(optional)*     | File path containing ciphertext           |
 
 ### CLI Flags
 
