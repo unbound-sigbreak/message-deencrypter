@@ -30,6 +30,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     );
   };
 
+  const stripSpacesAndNewlines = (str) => str.replace(/[\s\r\n]+/g, '');
+
   const pemToArrayBuffer = (pem) => {
     const b64 = pem.replace(/-----(BEGIN|END)[^\n]+-----/g, '').replace(/\s+/g, '');
     const bin = atob(b64);
@@ -114,7 +116,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   const encryptMessage = async () => {
-    const recipientPem = pubkeyArea.value.trim();
+    const recipientPem = stripSpacesAndNewlines(pubkeyArea.value);
     if (!recipientPem) return alert("Paste a recipient's public key first.");
 
     const publicKey = await importKey(recipientPem, false);
@@ -144,7 +146,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!keys) return alert('Keypair not loaded.');
     const privateKey = await importKey(keys.privPem, true);
     try {
-      const raw = atob(ciphertextArea.value);
+      const raw = atob(stripSpacesAndNewlines(ciphertextArea.value));
       const buf = new Uint8Array([...raw].map(c => c.charCodeAt(0)));
       const decrypted = await crypto.subtle.decrypt({ name: 'RSA-OAEP' }, privateKey, buf);
       decryptedArea.value = new TextDecoder().decode(decrypted);
