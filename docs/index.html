@@ -3,36 +3,115 @@
 <head>
   <meta charset="UTF-8">
   <title>RSA Encrypt/Decrypt Tool</title>
-  <script defer src="main.js"></script>
+  <script defer src="rsa_main.js"></script>
   <style>
     body { font-family: sans-serif; max-width: 800px; margin: 2em auto; }
-    textarea { width: 100%; height: 100px; }
+    textarea { width: 100%; height: 150px; }
     .control { margin-bottom: 1.5em; }
     button { margin-right: 1em; }
     label { display: block; font-weight: bold; margin-bottom: 0.5em; }
+    .row { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+    .right { margin-left: auto; }
+    .warning { color: red; font-size: 0.9em; margin-top: 0.3em; }
+    .info { color: green; font-size: 0.9em; margin-top: 0.3em; }
+    #myPubkeyContainer, #myPrivkeyContainer { display: none; }
   </style>
 </head>
 <body>
   <h1>RSA Encrypt/Decrypt Tool</h1>
 
-  <div class="control">
-    <button id="genKeyBtn">Generate Keypair</button>
-    <button id="exportPrivBtn">Export Private Key</button>
+  <div class="control row">
+      <button id="showMyPubBtn">Show My Public Key (Give this to others)</button>
+      <button id="showHelpBtn">Help</button>
+    <div>
+      <button id="genKeyBtn">Generate New Keypair</button>
+      <button id="showMyPrivBtn" class="right">Show My Private Key (Keep safe)</button>
+    </div>
+  </div>
+
+  <div class="control" id="myPrivkeyContainer">
+    <div id="privWarning" class="warning" style="display:none;">
+      Warning: anyone with this private key can decrypt messages meant for you, keep this safe.
+    </div>
+    <label for="myPrivkey">My Private Key</label>
+    <div id="privWarning2" class="warning">
+      People with this private key can decrypt messages encrypted with your public key. Keep this private key safe.
+    </div>
+    <textarea id="myPrivkey" readonly></textarea>
+  </div>
+
+  <div class="control" id="helpContainer" style="display:none;">
+    <h2>Instructions</h2>
+    <ol>
+      <li>
+        <strong>Keys are created automatically:</strong><br />
+        When the page loads, a personal RSA keypair is generated and stored in your browser's localStorage.
+      </li>
+      <li>
+        <strong>View your keys:</strong><br />
+        - Click <em>Show My Public Key</em> to reveal your public key (share this with others).<br />
+        - Click <em>Show My Private Key</em> to reveal your private key (keep this secret).
+      </li>
+      <li>
+        <strong>Encrypt a message for someone else:</strong><br />
+        Paste the recipient's public key into the <em>Public Key (others')</em> box.  
+        Enter your message in the <em>Plaintext to Encrypt</em> box and click <em>Encrypt</em>.  
+        The ciphertext will appear in the <em>Ciphertext</em> box.
+      </li>
+      <li>
+        <strong>Send the ciphertext:</strong><br />
+        Copy the text from the <em>Ciphertext</em> box and send it to the recipient.  
+        Only their private key can decrypt it.
+      </li>
+      <li>
+        <strong>Decrypt a message for you:</strong><br />
+        Paste ciphertext (that was encrypted with your public key) into the <em>Ciphertext</em> box.  
+        Click <em>Decrypt</em>. The plaintext will appear in the <em>Decrypted Output</em> box.
+      </li>
+      <li>
+        <strong>Regenerate keys:</strong><br />
+        Click <em>Generate New Keypair</em> if you want to replace your keys.  
+        Warning: old messages encrypted for your previous keypair will no longer be decryptable unless you saved that private key.
+      </li>
+    </ol>
+
+    <h2>How It Works</h2>
+    <ul>
+      <li>RSA uses two keys: a <strong>public key</strong> (shared) and a <strong>private key</strong> (kept secret).</li>
+      <li>Anyone can use your public key to encrypt messages that only your private key can unlock.</li>
+      <li>Messages are encrypted with RSA-OAEP (SHA-256, 2048-bit modulus).</li>
+      <li>Because of RSA padding limits, messages must be &lt; 190 bytes (UTF-8 encoded).</li>
+      <li>Your keys stay in your browser's localStorage and are not uploaded anywhere.</li>
+    </ul>
+  </div>
+
+  <div class="control" id="myPubkeyContainer">
+    <label for="myPubkey">My Public Key</label>
+    <div id="pubInfo" class="info">
+      People with this public key can encrypt messages only you can decrypt.
+    </div>
+    <textarea id="myPubkey" readonly></textarea>
   </div>
 
   <div class="control">
-    <label for="pubkey">Public Key</label>
-    <textarea id="pubkey" readonly></textarea>
+    <label for="pubkey">Public Key (others' key for encrypting messages to them)</label>
+    <textarea id="pubkey"></textarea>
   </div>
 
   <div class="control">
     <label for="plaintext">Plaintext to Encrypt</label>
     <textarea id="plaintext"></textarea>
+    <div id="tooLongWarning" class="warning" style="display:none;">
+      Message is too long. Keep it shorter than 190 ascii characters.
+    </div>
     <button id="encryptBtn">Encrypt</button>
   </div>
 
   <div class="control">
     <label for="ciphertext">Ciphertext (base64) to Decrypt</label>
+    <div id="inputInfo" class="info">
+      After pressing 'Encrypt' your encrypted message will be placed here.<br />You can place others' encrypted messages here and click 'Decrypt' if those messages were encrypted by them using your public key.
+    </div>
     <textarea id="ciphertext"></textarea>
     <button id="decryptBtn">Decrypt</button>
   </div>
