@@ -14,6 +14,7 @@
     .right { margin-left: auto; }
     .warning { color: red; font-size: 0.9em; margin-top: 0.3em; }
     .info { color: green; font-size: 0.9em; margin-top: 0.3em; }
+    .small { font-size: 0.9em; color: #444; }
     #myPubkeyContainer, #myPrivkeyContainer { display: none; }
   </style>
 </head>
@@ -23,11 +24,13 @@
   <div class="control row">
       <button id="showMyPubBtn">Show My Public Key (Give this to others)</button>
       <button id="showHelpBtn">Help</button>
-    <div>
+    <div style="display: flex; flex-direction: column; gap: 4px;">
       <button id="genKeyBtn">Generate New Keypair</button>
       <button id="showMyPrivBtn" class="right">Show My Private Key (Keep safe)</button>
     </div>
   </div>
+  <a href="aes.html"><div class="small">AES Symmetric Key message Encryption/Decryption tool</div></a>
+  <br />
 
   <div class="control" id="myPrivkeyContainer">
     <div id="privWarning" class="warning" style="display:none;">
@@ -72,6 +75,12 @@
         <strong>Regenerate keys:</strong><br />
         Click <em>Generate New Keypair</em> if you want to replace your keys.  
         Warning: old messages encrypted for your previous keypair will no longer be decryptable unless you saved that private key.
+      </li>
+      <li>
+        <strong>Usage:</strong><br />
+        RSA is length limited, so use it to share a short <em>AES key</em> instead of full messages.<br />
+        Copy the 32-byte AES key (base64) from the AES tool -&gt; paste it into <em>Plaintext to Encrypt</em> here -&gt; click <em>Encrypt</em> -&gt; send the ciphertext.<br />
+        The recipient decrypts it and pastes the result back into their AES tool's key field.
       </li>
     </ol>
 

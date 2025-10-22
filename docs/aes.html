@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>AES Encrypt/Decrypt Tool</title>
+  <script defer src="aes_main.js"></script>
+  <style>
+    body { font-family: sans-serif; max-width: 800px; margin: 2em auto; }
+    textarea { width: 100%; height: 150px; }
+    input[type="text"] { width: 100%; padding: 0.6em; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+    .control { margin-bottom: 1.5em; }
+    button { margin-right: 1em; }
+    label { display: block; font-weight: bold; margin-bottom: 0.5em; }
+    .row { display: flex; align-items: center; gap: 1rem; }
+    .warning { color: red; font-size: 0.9em; margin-top: 0.3em; }
+    .info { color: green; font-size: 0.9em; margin-top: 0.3em; }
+    .small { font-size: 0.9em; color: #444; }
+  </style>
+</head>
+<body>
+  <h1>AES Encrypt/Decrypt Tool</h1>
+
+  <div class="control row">
+    <button id="genKeyBtn">Generate New Key</button>
+    <button id="showHelpBtn">Help</button>
+    <div class="small">Key is 32 bytes (256-bit) stored in localStorage as base64.</div>
+  </div>
+  <a href="index.html"><div class="small">RSA Public/Private Key message Encryption/Decryption tool</div></a>
+  <br />
+
+  <div class="control" id="helpContainer" style="display:none;">
+    <h2>Basic Instructions</h2>
+    <ol>
+      <li><strong>Key is created automatically:</strong> On first load a 256-bit key is generated and saved to <code>localStorage</code>.</li>
+      <li><strong>View or edit key:</strong> The AES key field shows the current base64 key. You may paste your own 32-byte key (base64). Invalid sizes are rejected.</li>
+      <li><strong>Encrypt:</strong> Type your plaintext and click <em>Encrypt</em>. Output is <code>base64( IV || ciphertext )</code>. IV is 12 bytes generated per message.</li>
+      <li><strong>Share:</strong> Send the base64 ciphertext to the recipient who has the same key.</li>
+      <li><strong>Decrypt:</strong> Paste base64 ciphertext and click <em>Decrypt</em>. The tool extracts IV and verifies the GCM tag.</li>
+      <li><strong>Rotate key:</strong> Click <em>Generate New Key</em> to replace the key. Old ciphertexts need the old key.</li>
+      <li><strong>Remember:</strong> Anyone with this key can decrypt your messages</li>
+    </ol>
+
+    <div class="control" id="rsaAesHowTo">
+      <h2>Use RSA to share your AES key securely</h2>
+      <ol>
+        <li>Open your <strong>RSA tool</strong>. Click <em>Show My Public Key</em> and send that public key to the recipient, or paste <em>their</em> public key into the RSA tool if they already shared it.</li>
+        <li>In this AES tool, copy the <strong>AES Key</strong> (base64, 32-byte key).</li>
+        <li>In the RSA tool, paste that base64 key into <em>Plaintext to Encrypt</em> and click <strong>Encrypt</strong>.</li>
+        <li>Send the produced <strong>ciphertext</strong> to the recipient. The AES key is short enough for RSA-OAEP-2048, so no chunking (multiple RSA messages) is needed.</li>
+      </ol>
+      <p class="small"><strong>Trust check:</strong> Verify the recipient's RSA public key out of band. If an attacker swaps keys, you leak your AES key.</p>
+    </div>
+
+    <div class="control" id="rsaAesRecipient">
+      <h2>Recipient: install the AES key</h2>
+      <ol>
+        <li>In the <strong>RSA tool</strong>, paste the received ciphertext into <em>Ciphertext</em> and click <strong>Decrypt</strong>.</li>
+        <li>Copy the decrypted base64 string. That is the <strong>AES key</strong>.</li>
+        <li>In this AES tool, paste it into the <strong>AES Key</strong> field. You now share the same key and can encrypt/decrypt messages.</li>
+      </ol>
+      <p class="small"><strong>Rotate if needed:</strong> Use <em>Generate New Key</em> in either tool to rotate. Keep old keys if you must decrypt old messages.</p>
+    </div>
+
+    <h2>How It Works</h2>
+    <ul>
+      <li>Algorithm: AES-GCM with 256-bit key, 12-byte IV, built-in authentication tag.</li>
+      <li>Encoding: Ciphertext is base64 of IV concatenated with encrypted bytes.</li>
+      <li>Storage: Key persists in your browser's <code>localStorage</code>. Nothing is uploaded.</li>
+      <li>Integrity: Decrypt fails if the key or data is wrong.</li>
+    </ul>
+  </div>
+
+  <div class="control">
+    <label for="keyB64">AES Key</label>
+    <input id="keyB64" type="text" autocomplete="off" spellcheck="false" />
+    <div id="keyStatus" class="info">Loaded.</div>
+    <div id="keyWarning" class="warning" style="display:none;">Invalid key. Must be base64 for exactly 32 bytes.</div>
+  </div>
+
+  <div class="control">
+    <label for="plaintext">Plaintext</label>
+    <textarea id="plaintext"></textarea>
+    <button id="encryptBtn">Encrypt</button>
+    <div class="small">Output is base64( 12-byte IV || ciphertext ).</div>
+  </div>
+
+  <div class="control">
+    <label for="ciphertext">Ciphertext (base64)</label>
+    <textarea id="ciphertext"></textarea>
+    <button id="decryptBtn">Decrypt</button>
+  </div>
+
+  <div class="control">
+    <label for="decrypted">Decrypted Output</label>
+    <textarea id="decrypted" readonly></textarea>
+  </div>
+</body>
+</html>
