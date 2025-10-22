@@ -33,8 +33,21 @@ document.addEventListener('DOMContentLoaded', async () => {
   const stripSpacesAndNewlines = (str) => str.replace(/[\s\r\n]+/g, '');
 
   const pemToArrayBuffer = (pem) => {
-    const b64 = pem.replace(/-----(BEGIN|END)[^\n]+-----/g, '').replace(/\s+/g, '');
-    const bin = atob(b64);
+    const cleaned = pem.trim();
+
+    if (cleaned.startsWith('ssh-rsa ') || cleaned.startsWith('ssh-ed25519 ')) {
+      throw new Error('Unsupported key format: OpenSSH. Provide PEM SPKI with BEGIN PUBLIC KEY.');
+    }
+    if (cleaned.includes('BEGIN RSA PUBLIC KEY')) {
+      throw new Error('Unsupported key format: PKCS#1. Convert to SPKI (BEGIN PUBLIC KEY).');
+    }
+
+    const noHeaders = cleaned
+      .replace(/-----BEGIN [^-]+-----/g, '')
+      .replace(/-----END [^-]+-----/g, '')
+      .replace(/\s+/g, '');
+
+    const bin = atob(noHeaders);
     const buf = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
     return buf.buffer;
@@ -116,19 +129,40 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   const encryptMessage = async () => {
-    const recipientPem = stripSpacesAndNewlines(pubkeyArea.value);
-    if (!recipientPem) return alert("Paste a recipient's public key first.");
+    const recipientPem = document.getElementById('pubkey').value.trim();
+    if (!recipientPem) {
+      alert("Paste a recipient's public key first.");
+      return;
+    }
 
-    const publicKey = await importKey(recipientPem, false);
-    const encoded = new TextEncoder().encode(plaintextArea.value);
+    let publicKey;
+    try {
+      publicKey = await window.crypto.subtle.importKey(
+        'spki',
+        pemToArrayBuffer(recipientPem),
+        { name: 'RSA-OAEP', hash: 'SHA-256' },
+        true,
+        ['encrypt']
+      );
+    } catch (e) {
+      alert(
+        'Failed to import public key. Use SPKI PEM:\n' +
+        '-----BEGIN PUBLIC KEY----- ... -----END PUBLIC KEY-----\n' +
+        'If you have PKCS#1 (BEGIN RSA PUBLIC KEY), convert:\n' +
+        '  openssl rsa -RSAPublicKey_in -in pkcs1.pub -pubout -out spki.pub'
+      );
+      return;
+    }
 
+    const encoded = new TextEncoder().encode(document.getElementById('plaintext').value);
     const MAX_LEN = 190;
     if (encoded.length > MAX_LEN) {
-      return alert(`Message too long for RSA-OAEP-256 (max ${MAX_LEN} bytes).`);
+      alert(`Message too long for RSA-OAEP-256 (max ${MAX_LEN} bytes).`);
+      return;
     }
 
     const ciphertext = await crypto.subtle.encrypt({ name: 'RSA-OAEP' }, publicKey, encoded);
-    ciphertextArea.value = btoa(String.fromCharCode(...new Uint8Array(ciphertext)));
+    document.getElementById('ciphertext').value = btoa(String.fromCharCode(...new Uint8Array(ciphertext)));
   };
 
   const checkInputLength = () => {
