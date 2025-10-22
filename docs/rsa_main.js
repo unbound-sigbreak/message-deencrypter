@@ -189,9 +189,22 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   };
   
+  const selectAllOnFocus = (element) => {
+    const handler = () => {
+      element?.select();
+      element?.setSelectionRange?.(0, element.value.length);
+    };
+    element.addEventListener('focus', handler);
+    element.addEventListener('click', handler);
+    element.addEventListener('mouseup', (e) => e.preventDefault());
+  };
+
   await generateOnLoadIfEmpty();
   const keys = loadKeypair();
   if (keys?.pubPem && !pubkeyArea.value) pubkeyArea.value = '';
+
+  selectAllOnFocus(myPubkeyArea);
+  selectAllOnFocus(ciphertextArea);
 
   genKeyBtn.onclick = confirmAndGenerate;
   showHelpBtn.onclick = toggleHelp;
